@@ -1,10 +1,4 @@
 {
-  "apps": [
-    {
-      "platform": "android",
-      "build": {
-        "root": "android"
-      }
-    }
-  ]
+  "web_dir": "www",
+  "type": "capacitor"
 }
