@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" /> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="shortcut icon" href="imagem/chaves.jpg" type="image/x-icon" />
+  <title>.: Chaves Fight :.</title>
+
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/fontes.css" />
+  <link rel="stylesheet" href="css/estilo.css" />
+  <link rel="stylesheet" href="css/animacoes.css" />
+  <link rel="stylesheet" href="css/responsivo.css" />
+
+  <style>
+    .overlay-instrucoes{
+      position: fixed;
+      left: 50%;
+      top: 10px;
+      transform: translateX(-50%);
+      z-index: 50;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      padding: 6px 10px;
+      color: #fff;
+      max-width: min(780px, calc(100vw - 18px));
+      font-family: system-ui, Arial;
+      font-weight: 800;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+    .overlay-instrucoes small{
+      display:block;
+      margin-top: 4px;
+      opacity: .78;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.28);
+      padding: 1px 5px;
+      border-radius: 7px;
+      display: inline-block;
+    }
+
+    #uiHint{ display:block; }
+    @media (max-width: 768px){
+      #uiHint{ display:none !important; }
+    }
+
+    #arenaWrap{
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display:none;
+      background: #0b0f14;
+      overflow:hidden;
+    }
+    #game{
+      display:block;
+      background: #0d1620;
+    }
+
+    img#personagem-jogador-2{
+      left: 0;
+      top: 0;
+      right: 0;
+    }
+
+    .personagem-grande.personagem-jogador-2{
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .personagem-grande.personagem-jogador-2 img{
+      transform: scaleX(-1);
+      transform-origin: center;
+      display: block;
+      margin-left: auto;
+      margin-right: 0;
+    }
+    .personagem-grande.personagem-jogador-2 .nome{
+      width: 100%;
+      text-align: center;
+    }
+    @media (max-width: 768px){
+      .personagem-grande.personagem-jogador-2{
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 768px){
+      .selecao-de-personagens{
+        min-height: 100vh !important;
+        display: grid !important;
+        grid-template-rows: auto 1fr auto !important;
+        align-items: start !important;
+        justify-items: center !important;
+      }
+      .lista-de-personagens{
+        grid-row: 2 !important;
+        align-self: center !important;
+        justify-self: center !important;
+      }
+      .personagem-grande.personagem-jogador-1{
+        grid-row: 1 !important;
+        align-self: start !important;
+      }
+      .personagem-grande.personagem-jogador-2{
+        grid-row: 3 !important;
+      }
+    }
+
+    #tapAudio{
+      position: fixed;
+      left: 50%;
+      bottom: 10px;
+      transform: translateX(-50%);
+      z-index: 65;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font: 800 12px system-ui, Arial;
+      color: #fff;
+      background: rgba(0,0,0,.45);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(8px);
+      user-select: none;
+      display:none;
+      cursor: pointer;
+    }
+
+    #mobileHUD{
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      pointer-events: none;
+      display: none;
+    }
+    #joyArea{
+      pointer-events: auto;
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 58vw;
+      height: 62vh;
+      background: transparent;
+      touch-action: none;
+    }
+    .mBtn{
+      pointer-events: auto;
+      position: absolute;
+      right: 14px;
+      width: 64px;
+      height: 64px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.28);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: 22px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
+    #btnPunch { bottom: 18px;  font-size: 24px; }
+    #btnJump  { bottom: 92px;  font-size: 22px; }
+    #btnReset { top: 16px; right: 16px; width: 52px; height: 52px; font-size: 20px; }
+
+    /* ✅ LOADING OVERLAY (barra real + %) */
+    #loadingOverlay{
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6,10,14,.62);
+      backdrop-filter: blur(10px);
+    }
+    #loadingOverlay .loadingCard{
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.35);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      color: #fff;
+      font-family: system-ui, Arial;
+      min-width: min(520px, calc(100vw - 26px));
+    }
+    #loadingOverlay .loadingTitle{
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1.1;
+    }
+    #loadingOverlay .loadingSub{
+      margin-top: 3px;
+      font-weight: 700;
+      font-size: 12px;
+      opacity: .82;
+    }
+    #loadingOverlay .progressTrack{
+      margin-top: 10px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.14);
+      overflow: hidden;
+    }
+    #loadingOverlay #loadingBar{
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      transform-origin: left center;
+      transition: width .12s linear;
+    }
+    #loadingOverlay .progressMeta{
+      display:flex;
+      justify-content:space-between;
+      margin-top:6px;
+      font: 800 12px system-ui, Arial;
+      opacity:.92;
+    }
+
+    /* Botão fixo "Instruções" */
+    #btnShowHint{
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 55;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.35);
+      color: #fff;
+      font: 900 12px system-ui, Arial;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+
+    #uiHint{ display:none; }
+
+    @media (max-width: 768px){
+      #uiHint{ display:none !important; }
+      #btnShowHint{ display:none !important; }
+    }
+
+    div#tapAudio { text-align: center; }
+
+    #btnPickP2{
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 56;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.35);
+      color: #fff;
+      font: 900 12px system-ui, Arial;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      display: none; 
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #btnPickP2.isP2{
+      outline: 2px solid rgba(255,255,255,.35);
+    }
+    @media (max-width: 768px){
+      #btnPickP2{ display: block; }
+    }
+    
+    
+    #loadingOverlay img {
+      animation: pulse 2s infinite ease-in-out;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.9; }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="main">
+    <header class="cabecalho titulo"></header>
+
+    <div class="selecao-de-personagens" id="telaSelecao">
+      <div class="personagem-grande personagem-jogador-1">
+        <img src="imagem/chaves.png" alt="Personagem selecionado jogador 1" id="personagem-jogador-1" />
+        <div class="nome"><h2 id="nome-jogador-1">Chaves</h2></div>
+      </div>
+
+      <ul class="lista-de-personagens" id="lista">
+        <li class="personagem" id="Nhonho" data-id="nhonho" data-name="Nhonho">
+          <span class="tag">1P</span><img src="imagem/nhonho.jpg" alt="Personagem Nhonho" />
+        </li>
+        <li class="personagem" id="Quico" data-id="quico" data-name="Quico">
+          <span class="tag">1P</span><img src="imagem/quico.jpg" alt="Personagem Quico" />
+        </li>
+        <li class="personagem selecionado" id="Chaves" data-id="chaves" data-name="Chaves">
+          <span class="tag">1P</span><img src="imagem/chaves.jpg" alt="Personagem Chaves" />
+        </li>
+        <li class="personagem" id="Girafales" data-id="girafales" data-name="Girafales">
+          <span class="tag">1P</span><img src="imagem/girafales.jpg" alt="Personagem Girafales" />
+        </li>
+        <li class="personagem" id="Florinda" data-id="florinda" data-name="Florinda">
+          <span class="tag">1P</span><img src="imagem/florinda.jpg" alt="Personagem Florinda" />
+        </li>
+        <li class="personagem jogador-2-selecionado" id="Madruga" data-id="madruga" data-name="Madruga">
+          <span class="tag" id="player">2P</span><img src="imagem/madruga.jpg" alt="Personagem Madruga" />
+        </li>
+        <li class="personagem" id="Pops" data-id="pops" data-name="Pops">
+          <span class="tag">1P</span><img src="imagem/pops.jpg" alt="Personagem Pops" />
+        </li>
+        <li class="personagem" id="Chiquinha" data-id="chiquinha" data-name="Chiquinha">
+          <span class="tag">1P</span><img src="imagem/chiquinha.jpg" alt="Personagem Chiquinha" />
+        </li>
+        <li class="personagem" id="Barriga" data-id="barriga" data-name="Barriga">
+          <span class="tag">1P</span><img src="imagem/barriga.jpg" alt="Personagem Barriga" />
+        </li>
+      </ul>
+
+      <button id="btnPickP2" type="button" aria-label="Alternar seleção do Jogador 2">
+        Selecionar 2P
+      </button>
+
+      <div class="personagem-grande personagem-jogador-2">
+        <img src="imagem/madruga.png" alt="Personagem selecionado jogador 2" id="personagem-jogador-2" />
+        <div class="nome"><h2 id="nome-jogador-2">Madruga</h2></div>
+      </div>
+    </div>
+
+    <div class="overlay-instrucoes" id="uiHint">
+      <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
+        <div>Clique no fundo para <span class="kbd">COMEÇAR</span> (ou <span class="kbd">Enter</span>)</div>
+        <button id="btnHint" style="
+          all:unset; cursor:pointer; padding:2px 8px; border-radius:10px;
+          border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.18);
+          font-weight:900; font-size:12px;
+        ">Ocultar</button>
+      </div>
+      <small>
+        Seleção: clique = <span class="kbd">1P</span> • <span class="kbd">Shift</span>+clique = <span class="kbd">2P</span><br>
+        Desktop: P1 WASD + Soco <span class="kbd">F</span> + Pulo <span class="kbd">Espaço</span> |
+        P2 Setas + Soco <span class="kbd">Enter</span> + Pulo <span class="kbd">Shift</span><br>
+        Mobile: joystick + botões • Reiniciar: <span class="kbd">↻</span> (volta pra seleção)
+      </small>
+    </div>
+
+    <button id="btnShowHint" type="button" aria-label="Mostrar instruções">
+      Instruções
+    </button>
+
+    <div id="loadingOverlay" aria-live="polite" aria-busy="true" style="display:none;">
+        <div class="loadingCard" style="flex-direction: column; text-align:center;">
+        
+          <!-- LOGO -->
+          <a href="https://bacuridigital.com" target="_blank">
+            <img src="imagem/marca_bacuri.png" 
+               alt="Bacuri Digital" 
+               style="width:180px; margin-bottom:10px;" />
+          </a>
+        
+          <!-- SLOGAN -->
+          <div style="
+            font-weight:900;
+            font-size:14px;
+            color:#00ff88;
+            margin-bottom:6px;">
+            Desenvolvimento de Games
+          </div>
+        
+          <!-- LINK -->
+          <a href="https://bacuridigital.com" target="_blank"
+             style="
+               color:#ffffff;
+               font-size:12px;
+               text-decoration:none;
+               opacity:.8;
+               margin-bottom:12px;">
+            bacuridigital.com
+          </a>
+        
+          <!-- LOADING ORIGINAL -->
+          <div style="width:100%;">
+            <div class="loadingTitle">Carregando…</div>
+            <div class="loadingSub" id="loadingSub">Preparando a arena</div>
+        
+            <div class="progressTrack">
+              <div id="loadingBar"></div>
+            </div>
+        
+            <div class="progressMeta">
+              <span id="loadingPct">0%</span>
+              <span id="loadingCount">0/0</span>
+            </div>
+          </div>
+        
+        </div>
+    </div>
+
+    <div id="arenaWrap">
+      <canvas id="game" width="1280" height="720"></canvas>
+    </div>
+
+    <div id="tapAudio">Toque na TELA para COMEÇAR</div>
+
+    <div id="mobileHUD" aria-hidden="true">
+      <div id="joyArea"></div>
+      <button class="mBtn" id="btnReset" aria-label="Reiniciar (voltar)">↻</button>
+      <button class="mBtn" id="btnJump"  aria-label="Pular">⤴</button>
+      <button class="mBtn" id="btnPunch" aria-label="Soco">👊</button>
+    </div>
+  </main>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const STORAGE_KEY = "CHAVES_FIGHT_SELECTION";
+  const IMG_BASE = "imagem/";
+  const SCENARIO_DIR = "cenarios/";
+  const STAGE_MUSIC_DIR = "audio/stages/";
+
+  const VIRTUAL_WIDTH = 1280;
+  const VIRTUAL_HEIGHT = 720;
+
+  // ============================
+  // ✅ PROFUNDIDADE (PERSPECTIVA)
+  // ============================
+  const DEPTH_Y_MIN = 300;
+  const DEPTH_SCALE_MIN = 0.92;
+  const DEPTH_SCALE_MAX = 1.06;
+  const DEPTH_SHIFT_K = 1.05;
+
+  const SPRITE_Y_OFFSET = -50;
+  const WALK_FRAME_MS = 120;
+  const SPEED_MULT = 0.65;
+  const JUMP_MULT = 0.85;
+
+  function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+  function depthInfoFromY(y, baseH){
+    const DEPTH_Y_MAX = VIRTUAL_HEIGHT - baseH;
+    const t = clamp01((y - DEPTH_Y_MIN) / (DEPTH_Y_MAX - DEPTH_Y_MIN));
+    const s = DEPTH_SCALE_MIN + (DEPTH_SCALE_MAX - DEPTH_SCALE_MIN) * t;
+    return { t, s };
+  }
+
+  const isMobile = (() => {
+    const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    return coarse || ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+  })();
+
+  const VOL = {
+    music: 0.55,
+    hit:   0.70,
+    madrugaPunch: 1.5,
+    jump:  0.55,
+    ko:    0.22,
+    round: 0.40,
+    win:   1.2,
+    lose:  0.40,
+    whiff: 1
+  };
+
+  const FADE_OUT_MS = 3000;
+
+  const STAGES = [
+    "vila","3patio","barbearia","barriga","cadeia","churros",
+    "diversoes","escola","florinda","madruga","parque","restaurante"
+  ];
+
+  const STAGE_BY_CHARACTER = {
+    chaves:    "vila",
+    quico:     "florinda",
+    nhonho:    "churros",
+    girafales: "escola",
+    chiquinha: "diversoes",
+    florinda:  "restaurante",
+    barriga:   "barriga",
+    madruga:   "3patio",
+    pops:      "parque"
+  };
+
+  function pickStageFromSelection(p1Key, p2Key){
+    const s1 = STAGE_BY_CHARACTER[p1Key];
+    if (s1 && STAGES.includes(s1)) return s1;
+    const s2 = STAGE_BY_CHARACTER[p2Key];
+    if (s2 && STAGES.includes(s2)) return s2;
+    return "vila";
+  }
+
+  const main = document.getElementById("main");
+  const lista = document.getElementById("lista");
+  const telaSelecao = document.getElementById("telaSelecao");
+  const uiHint = document.getElementById("uiHint");
+  const btnHint = document.getElementById("btnHint");
+  const btnShowHint = document.getElementById("btnShowHint");
+
+  const imgP1 = document.getElementById("personagem-jogador-1");
+  const imgP2 = document.getElementById("personagem-jogador-2");
+  const nomeP1 = document.getElementById("nome-jogador-1");
+  const nomeP2 = document.getElementById("nome-jogador-2");
+
+  const arenaWrap = document.getElementById("arenaWrap");
+  const tapAudio = document.getElementById("tapAudio");
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+
+  const mobileHUD = document.getElementById("mobileHUD");
+  const joyArea   = document.getElementById("joyArea");
+  const btnPunch  = document.getElementById("btnPunch");
+  const btnJump   = document.getElementById("btnJump");
+  const btnReset  = document.getElementById("btnReset");
+
+  const btnPickP2 = document.getElementById("btnPickP2");
+  let pickMode = "p1"; // "p1" | "p2"
+
+  function setPickMode(mode){
+    pickMode = mode;
+    if (!btnPickP2) return;
+    btnPickP2.classList.toggle("isP2", pickMode === "p2");
+    btnPickP2.textContent = (pickMode === "p2") ? "Selecionando 2P" : "Selecionar 2P";
+  }
+
+  if (isMobile && btnPickP2){
+    setPickMode("p1");
+
+    const togglePickMode = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setPickMode(pickMode === "p1" ? "p2" : "p1");
+    };
+
+    btnPickP2.addEventListener("pointerdown", togglePickMode, { passive:false });
+    btnPickP2.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); }, { passive:false });
+  }
+
+  // ✅ Loading overlay (barra real)
+  const loadingOverlay = document.getElementById("loadingOverlay");
+  const loadingSub = document.getElementById("loadingSub");
+  const loadingBar = document.getElementById("loadingBar");
+  const loadingPct = document.getElementById("loadingPct");
+  const loadingCount = document.getElementById("loadingCount");
+
+  function showLoading(msg="Carregando…") {
+    if (!loadingOverlay) return;
+    loadingOverlay.style.display = "flex";
+    if (loadingSub) loadingSub.textContent = msg;
+  }
+  function setLoading(msg){
+    if (loadingSub) loadingSub.textContent = msg;
+  }
+  function hideLoading(){
+    if (!loadingOverlay) return;
+    loadingOverlay.style.display = "none";
+  }
+
+  // ---- Progresso real (%) baseado em tarefas
+  let _totalTasks = 0;
+  let _doneTasks = 0;
+
+  function progressInit(total){
+    _totalTasks = Math.max(1, total|0);
+    _doneTasks = 0;
+    progressUpdate();
+  }
+  function progressUpdate(){
+    const pct = Math.max(0, Math.min(100, Math.round((_doneTasks / _totalTasks) * 100)));
+    if (loadingBar) loadingBar.style.width = pct + "%";
+    if (loadingPct) loadingPct.textContent = pct + "%";
+    if (loadingCount) loadingCount.textContent = `${_doneTasks}/${_totalTasks}`;
+  }
+  function progressStep(label){
+    _doneTasks++;
+    if (label) setLoading(label);
+    progressUpdate();
+  }
+  async function trackTask(label, promiseFactory){
+    try{
+      await promiseFactory();
+    } finally {
+      progressStep(label);
+    }
+  }
+
+  function openHint(){
+    if (!uiHint) return;
+    uiHint.style.display = "block";
+    if (btnShowHint) btnShowHint.style.display = "none";
+  }
+  function closeHint(){
+    if (!uiHint) return;
+    uiHint.style.display = "none";
+    if (btnShowHint) btnShowHint.style.display = "block";
+  }
+
+  if (btnShowHint){
+    const onOpen = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openHint();
+    };
+    btnShowHint.addEventListener("pointerdown", onOpen, { passive:false });
+    btnShowHint.addEventListener("click", onOpen, { passive:false });
+  }
+
+  if (btnHint) {
+    btnHint.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeHint();
+    });
+  }
+
+  const CHAR_UI = {
+    nhonho: "Nhonho",
+    quico: "Quico",
+    chaves: "Chaves",
+    girafales: "Girafales",
+    florinda: "Florinda",
+    madruga: "Madruga",
+    pops: "Pops",
+    chiquinha: "Chiquinha",
+    barriga: "Barriga"
+  };
+
+  let selectedP1 = lista.querySelector(".personagem.selecionado")?.dataset.id || "nhonho";
+  let selectedP2 = lista.querySelector(".personagem.jogador-2-selecionado")?.dataset.id || "madruga";
+
+  function setImgWithFallback(el, primary, fallback){
+    el.onerror = null;
+    el.src = primary;
+    el.onerror = () => {
+      el.onerror = null;
+      el.src = fallback;
+    };
+  }
+
+  function updateSelectionUI(){
+    const n1 = CHAR_UI[selectedP1] || "Nhonho";
+    const n2 = CHAR_UI[selectedP2] || "Madruga";
+
+    setImgWithFallback(imgP1, `${IMG_BASE}${selectedP1}.png`, `${IMG_BASE}${n1}.png`);
+    setImgWithFallback(imgP2, `${IMG_BASE}${selectedP2}.png`, `${IMG_BASE}${n2}.png`);
+
+    nomeP1.textContent = n1;
+    nomeP2.textContent = n2;
+
+    [...lista.querySelectorAll(".personagem")].forEach(li => {
+      const id = li.dataset.id;
+      li.classList.toggle("selecionado", id === selectedP1);
+      li.classList.toggle("jogador-2-selecionado", id === selectedP2);
+      const tag = li.querySelector(".tag");
+      if (tag) tag.textContent = (id === selectedP2) ? "2P" : "1P";
+    });
+  }
+
+  lista.addEventListener("click", (e) => {
+    const li = e.target.closest(".personagem");
+    if (!li) return;
+
+    const id = li.dataset.id;
+
+    if (isMobile) {
+      if (pickMode === "p2") selectedP2 = id;
+      else selectedP1 = id;
+    } else {
+      if (e.shiftKey) selectedP2 = id;
+      else selectedP1 = id;
+    }
+
+    updateSelectionUI();
+  });
+
+  updateSelectionUI();
+
+  function persistSelection() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ p1: selectedP1, p2: selectedP2 }));
+  }
+
+  function resizeCanvas() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const scale = Math.min(vw / VIRTUAL_WIDTH, vh / VIRTUAL_HEIGHT);
+
+    const cssW = Math.floor(VIRTUAL_WIDTH * scale);
+    const cssH = Math.floor(VIRTUAL_HEIGHT * scale);
+
+    canvas.style.width = cssW + "px";
+    canvas.style.height = cssH + "px";
+    canvas.style.position = "absolute";
+    canvas.style.left = Math.floor((vw - cssW)/2) + "px";
+    canvas.style.top  = Math.floor((vh - cssH)/2) + "px";
+  }
+
+  const keys = Object.create(null);
+
+  window.addEventListener("keydown", (e) => {
+    keys[e.key.toLowerCase()] = true;
+    if (["arrowup","arrowdown","arrowleft","arrowright"," "].includes(e.key.toLowerCase())) e.preventDefault();
+  }, { passive:false });
+
+  window.addEventListener("keyup", (e) => {
+    keys[e.key.toLowerCase()] = false;
+  }, { passive:true });
+
+  const joy = { active:false, id:null, cx:0, cy:0, dx:0, dy:0 };
+
+  function setJoyFromPointer(e){
+    const dx = e.clientX - joy.cx;
+    const dy = e.clientY - joy.cy;
+
+    const max = 70;
+    const d = Math.hypot(dx,dy) || 1;
+    const k = Math.min(1, d / max);
+
+    joy.dx = (dx / d) * k;
+    joy.dy = (dy / d) * k;
+  }
+
+  function applyMobileKeysFromJoy(){
+    if (!isMobile) return;
+
+    const dead = 0.22;
+    const x = Math.abs(joy.dx) < dead ? 0 : joy.dx;
+    const y = Math.abs(joy.dy) < dead ? 0 : joy.dy;
+
+    keys["a"] = x < 0;
+    keys["d"] = x > 0;
+    keys["w"] = y < 0;
+    keys["s"] = y > 0;
+  }
+
+  function pulseKey(k, ms=110){
+    keys[k] = true;
+    setTimeout(() => keys[k] = false, ms);
+  }
+  function pulsePunch(){ pulseKey("f", 120); }
+  function pulseJump(){  pulseKey(" ", 140); }
+
+  function bindMobileControls(){
+    if (!isMobile) return;
+    if (!joyArea || !btnPunch || !btnJump || !btnReset) return;
+
+    const prevent = (ev) => { ev.preventDefault(); ev.stopPropagation(); };
+
+    joyArea.addEventListener("pointerdown", (e) => {
+      prevent(e);
+      joy.active = true;
+      joy.id = e.pointerId;
+      joy.cx = e.clientX;
+      joy.cy = e.clientY;
+      setJoyFromPointer(e);
+      joyArea.setPointerCapture(e.pointerId);
+    }, { passive:false });
+
+    joyArea.addEventListener("pointermove", (e) => {
+      if (!joy.active || e.pointerId !== joy.id) return;
+      prevent(e);
+      setJoyFromPointer(e);
+    }, { passive:false });
+
+    const endJoy = (e) => {
+      if (!joy.active || e.pointerId !== joy.id) return;
+      prevent(e);
+      joy.active = false;
+      joy.id = null;
+      joy.dx = 0; joy.dy = 0;
+      applyMobileKeysFromJoy();
+      try { joyArea.releasePointerCapture(e.pointerId); } catch(_){}
+    };
+    joyArea.addEventListener("pointerup", endJoy, { passive:false });
+    joyArea.addEventListener("pointercancel", endJoy, { passive:false });
+
+    const press = (el, fn) => {
+      el.addEventListener("pointerdown", (e) => { prevent(e); fn(); }, { passive:false });
+      el.addEventListener("click", (e) => { prevent(e); }, { passive:false });
+    };
+
+    press(btnPunch, () => pulsePunch());
+    press(btnJump,  () => pulseJump());
+  }
+  bindMobileControls();
+
+  // ============================
+  // ✅ MÚSICA DA SELEÇÃO (HTMLAudio) - MOBILE SAFE
+  // ============================
+  const SELECT_MUSIC_URL = "audio/musica_chaves.mp3";
+  const selectMusic = new Audio();
+  selectMusic.src = SELECT_MUSIC_URL;
+  selectMusic.loop = true;
+  selectMusic.preload = "auto";
+  selectMusic.volume = 0;
+  selectMusic.muted = true;
+  selectMusic.playsInline = true;
+  selectMusic.setAttribute("playsinline", "");
+  selectMusic.setAttribute("webkit-playsinline", "");
+
+  let selectMusicAudible = false;
+
+  function fadeHtmlAudio(audio, to, ms=600){
+    const from = audio.volume || 0;
+    const steps = 30;
+    const stepMs = Math.max(10, Math.floor(ms / steps));
+    let i = 0;
+
+    const tick = () => {
+      i++;
+      const t = Math.min(1, i / steps);
+      audio.volume = from + (to - from) * t;
+      if (t < 1) setTimeout(tick, stepMs);
+    };
+    tick();
+  }
+
+  async function armAndPlaySelectMusicFromGesture(){
+    if (selectMusicAudible) return true;
+    try{
+      selectMusic.load();
+
+      // primeiro play pode precisar ser mutado, mas sempre dentro do gesto
+      selectMusic.muted = true;
+      let p = selectMusic.play();
+      if (p && typeof p.catch === "function") await p.catch(()=>{});
+
+      // agora deixa audível
+      selectMusic.muted = false;
+      p = selectMusic.play();
+      if (p && typeof p.catch === "function") await p.catch(()=>{});
+
+      fadeHtmlAudio(selectMusic, Math.min(1, VOL.music), 650);
+      selectMusicAudible = true;
+
+      if (tapAudio) tapAudio.style.display = "none";
+      return true;
+    } catch(_){
+      return false;
+    }
+  }
+
+  function stopSelectMusicFade(ms=600){
+    try {
+      fadeHtmlAudio(selectMusic, 0, ms);
+      setTimeout(() => {
+        try { selectMusic.pause(); } catch(_){}
+      }, ms + 80);
+    } catch(_) {}
+  }
+
+  // ============================
+  // ÁUDIO (WebAudio) do jogo
+  // ============================
+  let audioCtx = null;
+
+  const AudioEngine = {
+    buffers: Object.create(null),
+    music: null,
+    active: new Set(),
+
+    async ensureCtxFromGesture() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        if (audioCtx.state === "suspended") {
+          await audioCtx.resume();
+        }
+
+        // “tick” silencioso (mais confiável no iOS)
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        g.gain.value = 0.00001;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        o.stop(audioCtx.currentTime + 0.02);
+
+        if (audioCtx.state !== "running") {
+          await audioCtx.resume();
+        }
+
+        return audioCtx.state === "running";
+      } catch (_) {
+        return false;
+      }
+    },
+
+    async load(name, url) {
+      if (!audioCtx) return null;
+      if (this.buffers[name]) return this.buffers[name];
+
+      try {
+        const res = await fetch(url, { cache: "force-cache" });
+        if (!res.ok) return null;
+        const arr = await res.arrayBuffer();
+        const buf = await audioCtx.decodeAudioData(arr);
+        this.buffers[name] = buf;
+        return buf;
+      } catch (_) {
+        return null;
+      }
+    },
+
+    play(name, { volume = 1, loop = false } = {}) {
+      if (!audioCtx) return null;
+      const buf = this.buffers[name];
+      if (!buf) return null;
+
+      const src = audioCtx.createBufferSource();
+      const gain = audioCtx.createGain();
+
+      src.buffer = buf;
+      src.loop = loop;
+
+      const now = audioCtx.currentTime;
+      gain.gain.setValueAtTime(volume, now);
+
+      src.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const handle = { src, gain };
+      this.active.add(handle);
+
+      src.onended = () => {
+        this.active.delete(handle);
+      };
+
+      src.start(0);
+      return handle;
+    },
+
+    stopMusic() {
+      if (this.music?.src) {
+        try { this.music.src.stop(); } catch (_) {}
+        this.music = null;
+      }
+    },
+
+    stopAll() {
+      for (const h of Array.from(this.active)) {
+        try { h.src.stop(); } catch (_) {}
+        this.active.delete(h);
+      }
+      this.music = null;
+    },
+
+    fadeOutAll(ms = FADE_OUT_MS) {
+      if (!audioCtx) { this.stopAll(); return; }
+
+      const dur = Math.max(0.05, ms / 1000);
+      const now = audioCtx.currentTime;
+
+      for (const h of Array.from(this.active)) {
+        try {
+          h.gain.gain.cancelScheduledValues(now);
+          h.gain.gain.setValueAtTime(h.gain.gain.value, now);
+          h.gain.gain.linearRampToValueAtTime(0.0001, now + dur);
+        } catch (_) {}
+      }
+
+      setTimeout(() => this.stopAll(), ms + 60);
+    }
+  };
+
+  let audioUnlocked = false;
+
+  async function unlockAudioFromGesture(){
+    // 1) desbloqueia WebAudio
+    audioUnlocked = await AudioEngine.ensureCtxFromGesture();
+
+    // 2) arma música de seleção (HTMLAudio) no MESMO gesto
+    await armAndPlaySelectMusicFromGesture();
+
+    if (tapAudio) tapAudio.style.display = (audioUnlocked || selectMusicAudible) ? "none" : "block";
+    return audioUnlocked;
+  }
+
+  if (tapAudio) tapAudio.style.display = "block";
+
+  if (tapAudio) {
+    const tapToEnable = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await unlockAudioFromGesture();
+    };
+    tapAudio.addEventListener("pointerdown", tapToEnable, { passive:false });
+    tapAudio.addEventListener("click", tapToEnable, { passive:false });
+  }
+
+  const onFirstGesture = () => {
+    unlockAudioFromGesture();
+  };
+  window.addEventListener("pointerdown", onFirstGesture, { once:true, passive:false, capture:true });
+  window.addEventListener("touchend", onFirstGesture, { once:true, passive:false, capture:true });
+  window.addEventListener("keydown", onFirstGesture, { once:true, passive:false, capture:true });
+
+  const SFX = {
+    hit:   `audio/sfx/hit.wav`,
+    jump:  `audio/sfx/jump.wav`,
+    ko:    `audio/sfx/ko.wav`,
+    round: `audio/sfx/round.wav`,
+    whiff: `audio/chars/char_whiff.wav`
+  };
+
+  const PUNCH_BY_ATTACKER = {
+    madruga: "audio/chars/madruga_toma.mp3"
+  };
+
+  const WINLOSE_DIR = "audio/falas/";
+  function winFile(id){  return `${WINLOSE_DIR}${id}_wins.wav`; }
+  function loseFile(id){ return `${WINLOSE_DIR}${id}_loses.wav`; }
+
+  const SPECIAL_WINS_DIR = "audio/wins/";
+  function specialWinFile(winnerId, loserId){
+    return `${SPECIAL_WINS_DIR}${winnerId}_wins_${loserId}.wav`;
+  }
+
+  async function playSfx(name, volume=0.75, urlOverride=null){
+    if (!audioUnlocked) return;
+    const url = urlOverride || SFX[name];
+    if (!url) return;
+    const key = `sfx_${name}_${url}`;
+    const buf = await AudioEngine.load(key, url);
+    if (!buf) return;
+    AudioEngine.play(key, { volume });
+  }
+
+  async function playStageMusic(stageName) {
+    if (!audioUnlocked) return false;
+    AudioEngine.stopMusic();
+
+    const url = `${STAGE_MUSIC_DIR}${stageName}.wav`;
+    const key = `stage_${stageName}`;
+    const buf = await AudioEngine.load(key, url);
+    if (!buf) return false;
+
+    AudioEngine.music = AudioEngine.play(key, { volume: VOL.music, loop: true });
+    return true;
+  }
+
+  async function playWinLose(kind, charId, urlOverride=null){
+    if (!audioUnlocked) return;
+    if (!charId) return;
+
+    const url = urlOverride || ((kind === "win") ? winFile(charId) : loseFile(charId));
+    const key = `${kind}_${charId}_${url}`;
+    const buf = await AudioEngine.load(key, url);
+    if (!buf) return;
+
+    AudioEngine.play(key, { volume: (kind === "win") ? VOL.win : VOL.lose });
+  }
+
+  const stage = {
+    name: "vila",
+    bg: new Image(),
+    loaded: false
+  };
+
+  function setStageName(stageName){
+    stage.name = stageName || "vila";
+    stage.loaded = false;
+
+    stage.bg.onload = () => stage.loaded = true;
+    stage.bg.onerror = () => stage.loaded = false;
+    stage.bg.src = `${SCENARIO_DIR}${stage.name}.png`;
+  }
+
+  function waitStageBackground(){
+    return new Promise((resolve) => {
+      if (stage.loaded && stage.bg.naturalWidth > 0) return resolve();
+      const done = () => resolve();
+      stage.bg.addEventListener("load", done, { once:true });
+      stage.bg.addEventListener("error", done, { once:true });
+    });
+  }
+
+  const charData = {
+    chaves:    { name: "CHAVES",      speed: 8,  hp: 100, range: 200 },
+    nhonho:    { name: "NHONHO",      speed: 5,  hp: 130, range: 220 },
+    madruga:   { name: "SEU MADRUGA", speed: 9,  hp: 90,  range: 190 },
+    quico:     { name: "QUICO",       speed: 10, hp: 100, range: 180 },
+    chiquinha: { name: "CHIQUINHA",   speed: 11, hp: 80,  range: 180 },
+    barriga:   { name: "SR. BARRIGA", speed: 4,  hp: 150, range: 230 },
+    florinda:  { name: "FLORINDA",    speed: 8,  hp: 100, range: 200 },
+    girafales: { name: "GIRAFALES",   speed: 6,  hp: 110, range: 260 },
+    pops:      { name: "POPS",        speed: 10, hp: 95,  range: 190 }
+  };
+
+  const WEIGHT = {
+    barriga: 1.35,
+    nhonho:  1.20,
+    girafales: 1.10,
+    florinda: 1.00,
+    madruga: 1.00,
+    pops:    0.95,
+    quico:   0.92,
+    chaves:  0.90,
+    chiquinha: 0.88
+  };
+  function getJumpPowerFor(key){
+    const w = WEIGHT[key] ?? 1.0;
+    return -22 / w;
+  }
+
+  function createImageWithFallback(primarySrc, fallbackSrc=null){
+    const img = new Image();
+    let triedFallback = false;
+    img.onload = () => {};
+    img.onerror = () => {
+      if (fallbackSrc && !triedFallback){
+        triedFallback = true;
+        img.src = fallbackSrc;
+      }
+    };
+    img.src = primarySrc;
+    return img;
+  }
+
+  const assets = {};
+  const charKeys = Object.keys(charData);
+
+  charKeys.forEach((k) => {
+    const cap = CHAR_UI[k] || (k.charAt(0).toUpperCase() + k.slice(1));
+    const base = `${IMG_BASE}${k}`;
+    const fallbackBase = `${IMG_BASE}${cap}`;
+
+    assets[k] = {
+      normal:     createImageWithFallback(`${base}.png`,            `${fallbackBase}.png`),
+      punch:      createImageWithFallback(`${base}_punch.png`,      `${fallbackBase}_punch.png`),
+      jump:       createImageWithFallback(`${base}_jump.png`,       `${fallbackBase}_jump.png`),
+      jumpPunch:  createImageWithFallback(`${base}_jump_punch.png`, `${fallbackBase}_jump_punch.png`),
+      walk1:      createImageWithFallback(`${base}_walk1.png`,      `${fallbackBase}_walk1.png`),
+      walk2:      createImageWithFallback(`${base}_walk2.png`,      `${fallbackBase}_walk2.png`)
+    };
+  });
+
+  function waitImage(img) {
+    return new Promise((resolve) => {
+      if (img.complete && img.naturalWidth > 0) return resolve();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+    });
+  }
+
+  function canUse(img){
+    return img && img.complete && img.naturalWidth > 0;
+  }
+
+  function drawStyledText(text, x, y, size, align, color="#FFF", stroke="#000"){
+    ctx.save();
+    ctx.textAlign = align;
+    ctx.textBaseline = "alphabetic";
+    ctx.font = `900 ${size}px 'Arial Black', Arial, sans-serif`;
+
+    const thickness = 0.045;
+    const r = Math.max(2, Math.round(size * thickness));
+    const steps = Math.max(16, Math.round(r * 10));
+
+    ctx.fillStyle = stroke;
+    for (let i=0;i<steps;i++){
+      const a = (i/steps) * Math.PI*2;
+      ctx.fillText(text, x + Math.cos(a)*r, y + Math.sin(a)*r);
+    }
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  function drawVictoryStar(x, y, active) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      ctx.lineTo(Math.cos(((18 + i * 72) / 180) * Math.PI) * 18, -Math.sin(((18 + i * 72) / 180) * Math.PI) * 18);
+      ctx.lineTo(Math.cos(((54 + i * 72) / 180) * Math.PI) * 8, -Math.sin(((54 + i * 72) / 180) * Math.PI) * 8);
+    }
+    ctx.closePath();
+    if (active) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "gold";
+      ctx.fillStyle = "#FFD700";
+      ctx.fill();
+    }
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  let screenShake = 0;
+  let flash = 0;
+  let particles = [];
+
+  function createParticle(x, y, color, count = 10, size = 4) {
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 20,
+        vy: (Math.random() - 0.5) * 20,
+        life: 1,
+        color,
+        size: Math.random() * size + 2
+      });
+    }
+  }
+
+  class Fighter {
+    constructor(x, y, isP1, key) {
+      const data = charData[key];
+      this.x = x; this.y = y; this.z = 0;
+      this.isP1 = isP1;
+      this.key = key;
+
+      this.name = data.name;
+
+      this.speed = data.speed * SPEED_MULT;
+
+      this.hp = data.hp;
+      this.maxHp = data.hp;
+      this.range = data.range;
+
+      this.hitFlash = 0;
+      this.h = 400;
+      this.w = 200;
+
+      this.knockback = 0;
+
+      this.jumpV = 0;
+      this.isJumping = false;
+      this.jumpPower = getJumpPowerFor(key) * JUMP_MULT;
+
+      this.jumpGrav  = 1.1;
+
+      this.jumpsRemaining = 2;
+      this._jumpHeld = false;
+
+      this.punching = false;
+      this.facingLeft = false;
+      this._punchSfxCd = 0;
+
+      this.isMoving = false;
+      this.isWalking = false;
+      this.moveX = 0;
+      this._walkBase = Math.floor(Math.random() * 100000);
+
+      this.controls = isP1
+        ? { up: "w", down: "s", left: "a", right: "d", punch: "f", jump: " " }
+        : { up: "arrowup", down: "arrowdown", left: "arrowleft", right: "arrowright", punch: "enter", jump: "shift" };
+    }
+
+    takeDamage(amt, dir) {
+      this.hp -= amt;
+      this.hitFlash = 15;
+      this.knockback = dir * 25;
+      screenShake = 12;
+
+      playSfx("hit", VOL.hit);
+      createParticle(this.x + this.w / 2, this.y + this.h / 2, "yellow", 12);
+    }
+
+    update(delta, opp) {
+      if (this.hp <= 0 || !roundActive) return;
+
+      if (this._punchSfxCd > 0) this._punchSfxCd--;
+      if (this.hitFlash > 0) this.hitFlash--;
+
+      let vx = 0, vy = 0;
+      if (keys[this.controls.up]) vy = -0.05;
+      if (keys[this.controls.down]) vy = 0.05;
+      if (keys[this.controls.left]) vx = -0.75;
+      if (keys[this.controls.right]) vx = 0.75;
+
+      this.moveX = vx;
+      this.isMoving = (vx !== 0 || vy !== 0);
+
+      const jumpKeyDown = !!keys[this.controls.jump];
+      if (jumpKeyDown && !this._jumpHeld && this.jumpsRemaining > 0) {
+        this._jumpHeld = true;
+
+        this.isJumping = true;
+        this.jumpV = this.jumpPower;
+        this.jumpsRemaining--;
+
+        playSfx("jump", VOL.jump);
+      }
+      if (!jumpKeyDown) this._jumpHeld = false;
+
+      if (this.isJumping) {
+        this.z += this.jumpV;
+        this.jumpV += this.jumpGrav;
+
+        if (this.z >= 0) {
+          this.z = 0;
+          this.isJumping = false;
+          this.jumpsRemaining = 2;
+        }
+      }
+
+      const prevX = this.x;
+
+      this.x += (vx * this.speed + this.knockback) * (delta * 120);
+      this.y += vy * this.speed * (delta * 120);
+      this.knockback *= 0.85;
+
+      this.x = Math.max(0, Math.min(this.x, VIRTUAL_WIDTH - this.w));
+      this.y = Math.max(300, Math.min(this.y, VIRTUAL_HEIGHT - this.h));
+
+      const dxReal = this.x - prevX;
+
+      this.isWalking = this.isMoving || Math.abs(dxReal) > 0.05;
+
+      if (this.moveX !== 0) {
+        this.facingLeft = this.moveX < 0;
+      } else if (this.isWalking) {
+        this.facingLeft = dxReal < 0;
+      } else {
+        this.facingLeft = this.x > opp.x;
+      }
+
+      if (keys[this.controls.punch] && !this.punching) {
+        this.punching = true;
+
+        const distH = Math.abs(this.x + this.w / 2 - (opp.x + opp.w / 2));
+        const distV = Math.abs(this.y + this.z - (opp.y + opp.z));
+
+        let hit = (distH < this.range && distV < 110);
+
+        if (!isMobile) {
+          const DESKTOP_DEPTH_TOL = 0.18;
+          const DESKTOP_Y_TOL     = 55;
+
+          const tA = depthInfoFromY(this.y, this.h).t;
+          const tB = depthInfoFromY(opp.y,  opp.h).t;
+
+          const depthOk = Math.abs(tA - tB) <= DESKTOP_DEPTH_TOL;
+          const yOk     = Math.abs(this.y - opp.y) <= DESKTOP_Y_TOL;
+
+          hit = hit && depthOk && yOk;
+        }
+
+        if (hit) {
+          if (this.key === "madruga") {
+            const punchUrl = PUNCH_BY_ATTACKER.madruga;
+            playSfx("hit", VOL.madrugaPunch, punchUrl);
+          }
+          opp.takeDamage(10, this.facingLeft ? -1 : 1);
+        } else {
+          if (this._punchSfxCd <= 0) {
+            playSfx("whiff", VOL.whiff);
+            this._punchSfxCd = 14;
+          }
+        }
+
+        setTimeout(() => (this.punching = false), 250);
+      }
+    }
+
+    draw(ctx) {
+      const pack = assets[this.key];
+      if (!pack) return;
+
+      let img = pack.normal;
+
+      if (this.isJumping && this.punching) {
+        if (canUse(pack.jumpPunch)) img = pack.jumpPunch;
+        else if (canUse(pack.punch)) img = pack.punch;
+        else if (canUse(pack.jump)) img = pack.jump;
+        else img = pack.normal;
+      } else if (this.isJumping && canUse(pack.jump)) {
+        img = pack.jump;
+      } else if (this.punching && canUse(pack.punch)) {
+        img = pack.punch;
+      } else if (this.isWalking && (canUse(pack.walk1) || canUse(pack.walk2))) {
+        const t = performance.now() + this._walkBase;
+        const frame = Math.floor(t / WALK_FRAME_MS) % 2;
+        const choice = (frame === 0 ? pack.walk1 : pack.walk2);
+
+        img = canUse(choice) ? choice : (canUse(pack.walk1) ? pack.walk1 : pack.walk2);
+      } else {
+        img = pack.normal;
+      }
+
+      if (!canUse(img)) return;
+
+      const baseH = this.h;
+      const { s } = depthInfoFromY(this.y, baseH);
+
+      const drawH = baseH * s;
+      const r = img.width / img.height;
+      const drawW = drawH * r;
+
+      const depthShift = (1 - s) * baseH * DEPTH_SHIFT_K;
+      const topY = (this.y + this.z) - depthShift + SPRITE_Y_OFFSET;
+
+      const cx = this.x + this.w / 2;
+      const cy = topY + drawH / 2;
+
+      ctx.save();
+
+      if (this.hitFlash > 0) ctx.filter = "brightness(4) contrast(1.5)";
+
+      ctx.translate(cx, cy);
+
+      const sx = this.facingLeft ? -1 : 1;
+      ctx.scale(sx, 1);
+
+      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+
+      ctx.restore();
+    }
+  }
+
+  let gameStarted = false;
+  let lastTime = 0;
+  let p1 = null, p2 = null;
+  let p1Wins = 0, p2Wins = 0, currentRound = 1;
+  let roundActive = false;
+  let message = "";
+
+  function drawHUD() {
+    const drawBar = (f, x, isP1) => {
+      const barW = 500;
+      drawStyledText(f.name, x, 50, 22, isP1 ? "left" : "right", "#FFF", "#000");
+
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(isP1 ? x : x - barW, 60, barW, 30);
+
+      ctx.fillStyle = f.hp < 30 ? "#F00" : "#0F0";
+      const curW = (barW * f.hp) / f.maxHp;
+      ctx.fillRect(isP1 ? x : x - curW, 60, curW, 30);
+
+      ctx.strokeStyle = "#FFF";
+      ctx.strokeRect(isP1 ? x : x - barW, 60, barW, 30);
+
+      for (let i = 0; i < 2; i++)
+        drawVictoryStar(isP1 ? x + i * 50 + 20 : x - i * 50 - 20, 115, i < (isP1 ? p1Wins : p2Wins));
+    };
+
+    drawBar(p1, 40, true);
+    drawBar(p2, VIRTUAL_WIDTH - 40, false);
+    drawStyledText("VS", VIRTUAL_WIDTH / 2, 85, 40, "center", "#FFD700", "#000");
+  }
+
+  function initBattle() {
+    persistSelection();
+
+    const p1Key = charData[selectedP1] ? selectedP1 : "nhonho";
+    const p2Key = charData[selectedP2] ? selectedP2 : "madruga";
+
+    p1 = new Fighter(250, 320, true,  p1Key);
+    p2 = new Fighter(850, 320, false, p2Key);
+
+    roundActive = true;
+    message = "ROUND " + currentRound;
+    setTimeout(() => (message = ""), 1500);
+
+    playSfx("round", VOL.round);
+  }
+
+  async function handleRoundEnd() {
+    roundActive = false;
+    flash = 1;
+    screenShake = 40;
+
+    const winner = p1.hp > 0 ? p1 : p2;
+    const loser  = (winner === p1) ? p2 : p1;
+
+    setTimeout(() => playWinLose("lose", loser.key), 120);
+
+    const specialMap = {
+      "quico|madruga": specialWinFile("quico", "madruga"),
+      "florinda|quico": specialWinFile("florinda", "quico")
+    };
+
+    const specialKey = `${winner.key}|${loser.key}`;
+    const winUrl = specialMap[specialKey] || null;
+
+    setTimeout(() => playWinLose("win", winner.key, winUrl), 420);
+
+    if (winner === p1) p1Wins++;
+    else p2Wins++;
+
+    message = "K.O.";
+    playSfx("ko", VOL.ko);
+
+    setTimeout(() => {
+      if (p1Wins === 2 || p2Wins === 2) {
+        message = winner.name + " VENCEU!";
+        AudioEngine.fadeOutAll(FADE_OUT_MS);
+      } else {
+        message = "VENCEDOR: " + winner.name;
+        setTimeout(() => {
+          currentRound++;
+          initBattle();
+        }, 2000);
+      }
+    }, 1500);
+  }
+
+  function backToSelection(){
+    AudioEngine.stopAll();
+    window.location.reload();
+  }
+
+  if (btnReset) {
+    const doReset = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      backToSelection();
+    };
+    btnReset.addEventListener("pointerdown", doReset, { passive:false });
+    btnReset.addEventListener("click", doReset, { passive:false });
+  }
+
+  function mobileAIForP2(){
+    if (!isMobile) return;
+    if (!roundActive) return;
+    if (!p1 || !p2) return;
+
+    keys["arrowup"] = false;
+    keys["arrowdown"] = false;
+    keys["arrowleft"] = false;
+    keys["arrowright"] = false;
+    keys["enter"] = false;
+    keys["shift"] = false;
+
+    const dx = p1.x - p2.x;
+    const dy = p1.y - p2.y;
+
+    if (Math.abs(dx) > 140) {
+      keys[dx < 0 ? "arrowleft" : "arrowright"] = true;
+    } else {
+      if (Math.abs(dy) > 20) keys[dy < 0 ? "arrowup" : "arrowdown"] = true;
+      if (Math.random() > 0.86) keys["enter"] = true;
+      if (Math.random() > 0.975) keys["shift"] = true;
+    }
+  }
+
+  function drawStageBackground(){
+    if (stage.loaded && stage.bg.naturalWidth > 0) {
+      ctx.drawImage(stage.bg, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+    } else {
+      ctx.fillStyle = "#0b0f14";
+      ctx.fillRect(0,0,VIRTUAL_WIDTH,VIRTUAL_HEIGHT);
+    }
+  }
+
+  function loop(t) {
+    const delta = (t - lastTime) / 1000;
+    lastTime = t;
+
+    if (!gameStarted || !p1 || !p2) {
+      requestAnimationFrame(loop);
+      return;
+    }
+
+    ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+    applyMobileKeysFromJoy();
+    if (roundActive && isMobile) mobileAIForP2();
+
+    ctx.save();
+    if (screenShake > 0) {
+      ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+      screenShake *= 0.95;
+    }
+
+    ctx.filter = "brightness(0.65) contrast(1)";
+    drawStageBackground();
+    ctx.filter = "none";
+
+    if (roundActive) {
+      p1.update(delta, p2);
+      p2.update(delta, p1);
+    }
+
+    const fighters = [p1, p2].sort((a, b) => a.y - b.y);
+    fighters.forEach(f => f.draw(ctx));
+
+    particles.forEach((p, i) => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 0.03;
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = p.life;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      if (p.life <= 0) particles.splice(i, 1);
+    });
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    drawHUD();
+
+    if (message) {
+      const s = 1 + Math.sin(t / 100) * 0.1;
+      ctx.save();
+      ctx.translate(VIRTUAL_WIDTH / 2, 350);
+      ctx.scale(s, s);
+      drawStyledText(message, 0, 0, 80, "center", "#FFF", "#F00");
+      ctx.restore();
+    }
+
+    if (flash > 0) {
+      ctx.fillStyle = `rgba(255,255,255,${flash})`;
+      ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+      flash -= 0.05;
+    }
+
+    if (roundActive && (p1.hp <= 0 || p2.hp <= 0)) handleRoundEnd();
+
+    requestAnimationFrame(loop);
+  }
+
+  async function startArena() {
+    if (gameStarted) return;
+
+    const spriteTasksCount = charKeys.length * 6;
+    const stageTaskCount = 1;
+    const audioTaskCount = 1;
+    const TOTAL = spriteTasksCount + stageTaskCount + audioTaskCount;
+
+    showLoading("Carregando…");
+    progressInit(TOTAL);
+
+    try {
+      stopSelectMusicFade(650);
+
+      telaSelecao.style.display = "none";
+      arenaWrap.style.display = "block";
+      if (uiHint) uiHint.style.display = "none";
+      if (isMobile && mobileHUD) mobileHUD.style.display = "block";
+
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+
+      for (const k of charKeys){
+        const pack = assets[k];
+        await trackTask(`Carregando ${k}…`, () => waitImage(pack.normal));
+        await trackTask(`Carregando ${k}_punch…`, () => waitImage(pack.punch));
+        await trackTask(`Carregando ${k}_jump…`, () => waitImage(pack.jump));
+        await trackTask(`Carregando ${k}_jump_punch…`, () => waitImage(pack.jumpPunch));
+        await trackTask(`Carregando ${k}_walk1…`, () => waitImage(pack.walk1));
+        await trackTask(`Carregando ${k}_walk2…`, () => waitImage(pack.walk2));
+      }
+
+      const p1Key = charData[selectedP1] ? selectedP1 : "chaves";
+      const p2Key = charData[selectedP2] ? selectedP2 : "madruga";
+      const stageName = pickStageFromSelection(p1Key, p2Key);
+
+      setStageName(stageName);
+      await trackTask("Carregando cenário…", () => waitStageBackground());
+
+      await trackTask("Carregando áudio…", async () => {
+        await unlockAudioFromGesture();
+        const ok = await playStageMusic(stageName);
+        if (!ok) setLoading("Áudio pendente (toque para habilitar)");
+      });
+
+      initBattle();
+      gameStarted = true;
+    } finally {
+      hideLoading();
+    }
+  }
+
+  const tryStart = async (e) => {
+    if (gameStarted) return;
+
+    if (tapAudio && e.target.closest("#tapAudio")) return;
+    if (e.target.closest(".personagem")) return;
+    if (e.target.closest("#uiHint") || e.target.closest("#btnShowHint")) return;
+    if (e.target.closest("#btnPickP2")) return; 
+
+    // ✅ FIX MOBILE: impedir padrão mas garantir áudio
+    e.preventDefault(); 
+
+    await unlockAudioFromGesture();
+    startArena();
+  };
+
+  // ✅ FIX: Passive false para permitir desbloqueio de áudio
+  main.addEventListener("pointerdown", tryStart, { passive:false });
+  main.addEventListener("touchstart", tryStart, { passive:false }); // Fallback
+  main.addEventListener("click", tryStart, { passive:false });
+
+  window.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter" && !gameStarted) {
+      await unlockAudioFromGesture();
+      startArena();
+    }
+    if ((e.key === "r" || e.key === "R") && gameStarted) {
+      backToSelection();
+    }
+  }, { passive:false });
+
+  requestAnimationFrame(loop);
+});
+</script>
+</body>
+</html>
