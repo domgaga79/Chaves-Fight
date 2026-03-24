@@ -1,8 +1,10 @@
 {
   "apps": [
     {
-      "appId": "75c3c080",
-      "root": "android"
+      "platform": "android",
+      "build": {
+        "root": "android"
+      }
     }
   ]
 }
