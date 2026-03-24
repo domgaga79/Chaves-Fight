@@ -1,5 +1,8 @@
 {
-  "build": {
-    "root": "android"
-  }
+  "apps": [
+    {
+      "appId": "75c3c080",
+      "root": "android"
+    }
+  ]
 }
