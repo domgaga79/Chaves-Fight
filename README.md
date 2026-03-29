@@ -44,13 +44,14 @@ Se você é fã de jogos de luta e da turma da vila, **Chaves Fight** é uma exp
 Para a versão mobile, onde a interface de toque prioriza o controle de um único jogador, implementei uma IA de Combate Baseada em Estados para controlar o oponente.
 
 🤖 Comportamento do Bot
+
 Diferente de um movimento aleatório, o jogador controlado pelo computador utiliza uma lógica de perseguição e ataque simulada por scripts em JavaScript
 
 :Rastreamento de Alvo: 
+
 O Bot monitora constantemente as coordenadas $(x, y)$ do jogador principal (Chaves).
 
-Aproximação Inteligente: Ele calcula a distância ideal para o ataque. 
-
+Aproximação Inteligente - Ele calcula a distância ideal para o ataque:
 Se estiver longe, ele se aproxima; se estiver muito perto, ele "orbita" o jogador para evitar ataques diretos e buscar uma abertura.
 
 Tomada de Decisão de Ataque: 
