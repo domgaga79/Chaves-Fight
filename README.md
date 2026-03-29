@@ -39,25 +39,20 @@ O jogo recria cenários e situações inspiradas na série original, com visual 
 Se você é fã de jogos de luta e da turma da vila, **Chaves Fight** é uma experiência divertida que mistura nostalgia com ação.
 
 ---
-📱 **Inteligência Artificial no Mobile (Modo Single Player)**
-
+### 📱 **Inteligência Artificial no Mobile (Modo Single Player)**:
 Para a versão mobile, onde a interface de toque prioriza o controle de um único jogador, implementei uma IA de Combate Baseada em Estados para controlar o oponente.
 
-🤖 Comportamento do Bot
-
+### 🤖 Comportamento do Bot:
 Diferente de um movimento aleatório, o jogador controlado pelo computador utiliza uma lógica de perseguição e ataque simulada por scripts em JavaScript
 
-:Rastreamento de Alvo: 
-
+### Rastreamento de Alvo:
 O Bot monitora constantemente as coordenadas $(x, y)$ do jogador principal (Chaves).
 
 Aproximação Inteligente - Ele calcula a distância ideal para o ataque:
 Se estiver longe, ele se aproxima; se estiver muito perto, ele "orbita" o jogador para evitar ataques diretos e buscar uma abertura.
 
-Tomada de Decisão de Ataque: 
+### Tomada de Decisão de Ataque: 
 * Ataque Curto: Quando atinge a distância de colisão, o Bot aciona o soco básico.
 
-
-🛠️ Implementação Técnica
-
+### 🛠️ Implementação Técnica:
 A lógica foi estruturada dentro de um setInterval ou no próprio game loop (dependendo da sua versão), garantindo que a "vontade" do Bot seja processada em milissegundos, criando um tempo de reação desafiador, mas justo para o usuário.
