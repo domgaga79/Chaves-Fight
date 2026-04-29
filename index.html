@@ -49,7 +49,7 @@
       display: inline-block;
     }
 
-    #uiHint{ display:block; }
+    #uiHint{ display:none; }
     @media (max-width: 768px){
       #uiHint{ display:none !important; }
     }
@@ -250,8 +250,6 @@
       backdrop-filter: blur(8px);
     }
 
-    #uiHint{ display:none; }
-
     @media (max-width: 768px){
       #uiHint{ display:none !important; }
       #btnShowHint{ display:none !important; }
@@ -280,8 +278,9 @@
     #btnPickP2.isP2{
       outline: 2px solid rgba(255,255,255,.35);
     }
-    @media (max-width: 768px){
-      #btnPickP2{ display: block; }
+    
+    #btnPickP2{
+      display: block;
     }
     
     
@@ -293,6 +292,28 @@
       0% { transform: scale(1); opacity: 0.9; }
       50% { transform: scale(1.05); opacity: 1; }
       100% { transform: scale(1); opacity: 0.9; }
+    }
+    
+    #btnStartGame {
+      position: fixed;
+      bottom: 10px;       /* 10px acima do rodapé */
+      left: 50%;          /* centraliza horizontalmente */
+      transform: translateX(-50%); /* corrige o alinhamento */
+      width: 180px;
+      height: 70px;
+      z-index: 200;
+      border-radius: 14px;
+      border: 2px solid rgba(255,255,255,.2);
+      background: rgba(0,0,0,.6);
+      color: #fff;
+      font: 900 20px system-ui;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: transform .15s ease;
+    }
+
+    #btnStartGame:active{
+      transform: scale(0.95);
     }
   </style>
 </head>
@@ -349,7 +370,7 @@
 
     <div class="overlay-instrucoes" id="uiHint">
       <div style="display:flex; gap:10px; align-items:center; justify-content:space-between;">
-        <div>Clique no fundo para <span class="kbd">COMEÇAR</span> (ou <span class="kbd">Enter</span>)</div>
+        <div><span class="kbd">START</span> (ou <span class="kbd">Enter</span>)</div>
         <button id="btnHint" style="
           all:unset; cursor:pointer; padding:2px 8px; border-radius:10px;
           border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.18);
@@ -420,7 +441,7 @@
       <canvas id="game" width="1280" height="720"></canvas>
     </div>
 
-    <div id="tapAudio">Toque na TELA para COMEÇAR</div>
+    <button id="btnStartGame" type="button">START</button>
 
     <div id="mobileHUD" aria-hidden="true">
       <div id="joyArea"></div>
@@ -519,7 +540,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const nomeP2 = document.getElementById("nome-jogador-2");
 
   const arenaWrap = document.getElementById("arenaWrap");
-  const tapAudio = document.getElementById("tapAudio");
+  const btnStartGame = document.getElementById("btnStartGame");
 
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
@@ -531,16 +552,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnReset  = document.getElementById("btnReset");
 
   const btnPickP2 = document.getElementById("btnPickP2");
+  
+  const tapAudio = document.getElementById("tapAudio") || null;
+  
+  closeHint();
+  
+  
   let pickMode = "p1"; // "p1" | "p2"
 
-  function setPickMode(mode){
-    pickMode = mode;
-    if (!btnPickP2) return;
-    btnPickP2.classList.toggle("isP2", pickMode === "p2");
-    btnPickP2.textContent = (pickMode === "p2") ? "Selecionando 2P" : "Selecionar 2P";
-  }
+    function setPickMode(mode){
+      pickMode = mode;
+    
+      const isP2 = pickMode === "p2";
+    
+      if (!btnPickP2) return;
+    
+      btnPickP2.classList.toggle("isP2", isP2);
+      btnPickP2.textContent = isP2 ? "Selecionar 2P" : "Selecionar 1P";
+    }
 
-  if (isMobile && btnPickP2){
+  if (btnPickP2){
     setPickMode("p1");
 
     const togglePickMode = (e) => {
@@ -549,8 +580,12 @@ document.addEventListener("DOMContentLoaded", () => {
       setPickMode(pickMode === "p1" ? "p2" : "p1");
     };
 
-    btnPickP2.addEventListener("pointerdown", togglePickMode, { passive:false });
-    btnPickP2.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); }, { passive:false });
+    btnPickP2.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setPickMode(pickMode === "p1" ? "p2" : "p1");
+    });
+    
   }
 
   // ✅ Loading overlay (barra real)
@@ -678,14 +713,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!li) return;
 
     const id = li.dataset.id;
-
-    if (isMobile) {
-      if (pickMode === "p2") selectedP2 = id;
-      else selectedP1 = id;
-    } else {
-      if (e.shiftKey) selectedP2 = id;
-      else selectedP1 = id;
-    }
+    
+    const is2P = pickMode === "p2" || e.shiftKey;
+    
+    if (is2P) selectedP2 = id;
+    else selectedP1 = id;
 
     updateSelectionUI();
   });
@@ -849,7 +881,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fadeHtmlAudio(selectMusic, Math.min(1, VOL.music), 650);
       selectMusicAudible = true;
 
-      if (tapAudio) tapAudio.style.display = "none";
+      //if (tapAudio) tapAudio.style.display = "none";
       return true;
     } catch(_){
       return false;
@@ -996,15 +1028,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (tapAudio) tapAudio.style.display = "block";
 
-  if (tapAudio) {
-    const tapToEnable = async (e) => {
+    btnStartGame.addEventListener("click", async (e) => {
       e.preventDefault();
-      e.stopPropagation();
       await unlockAudioFromGesture();
-    };
-    tapAudio.addEventListener("pointerdown", tapToEnable, { passive:false });
-    tapAudio.addEventListener("click", tapToEnable, { passive:false });
-  }
+      startArena();
+    });
 
   const onFirstGesture = () => {
     unlockAudioFromGesture();
@@ -1635,6 +1663,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function startArena() {
     if (gameStarted) return;
+    
+    btnStartGame.style.display = "none";
 
     const spriteTasksCount = charKeys.length * 6;
     const stageTaskCount = 1;
@@ -1647,7 +1677,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       stopSelectMusicFade(650);
 
-      telaSelecao.style.display = "none";
+      //telaSelecao.style.display = "none";
       arenaWrap.style.display = "block";
       if (uiHint) uiHint.style.display = "none";
       if (isMobile && mobileHUD) mobileHUD.style.display = "block";
@@ -1680,40 +1710,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
       initBattle();
       gameStarted = true;
+    
     } finally {
       hideLoading();
     }
   }
 
-  const tryStart = async (e) => {
-    if (gameStarted) return;
+const tryStart = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  return; // ❌ bloqueia qualquer start fora do botão
+};
 
-    if (tapAudio && e.target.closest("#tapAudio")) return;
-    if (e.target.closest(".personagem")) return;
-    if (e.target.closest("#uiHint") || e.target.closest("#btnShowHint")) return;
-    if (e.target.closest("#btnPickP2")) return; 
-
-    // ✅ FIX MOBILE: impedir padrão mas garantir áudio
-    e.preventDefault(); 
-
-    await unlockAudioFromGesture();
-    startArena();
-  };
-
-  // ✅ FIX: Passive false para permitir desbloqueio de áudio
-  main.addEventListener("pointerdown", tryStart, { passive:false });
-  main.addEventListener("touchstart", tryStart, { passive:false }); // Fallback
-  main.addEventListener("click", tryStart, { passive:false });
-
-  window.addEventListener("keydown", async (e) => {
-    if (e.key === "Enter" && !gameStarted) {
-      await unlockAudioFromGesture();
-      startArena();
-    }
-    if ((e.key === "r" || e.key === "R") && gameStarted) {
-      backToSelection();
-    }
-  }, { passive:false });
+    window.addEventListener("keydown", async (e) => {
+      if (e.key === "2") {
+        pickMode = (pickMode === "p1") ? "p2" : "p1";
+        setPickMode(pickMode);
+      }
+    
+      if (e.key === "Enter" && !gameStarted) {
+        await unlockAudioFromGesture();
+        startArena();
+      }
+    
+      if ((e.key === "r" || e.key === "R") && gameStarted) {
+        backToSelection();
+      }
+    });
 
   requestAnimationFrame(loop);
 });
